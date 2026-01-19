@@ -1,0 +1,124 @@
+{% extends 'app/base.html' %}
+
+{% block title %}My Profile - LUISS Rowing{% endblock %}
+
+{% block content %}
+<h1 class="page-title">👤 My Profile</h1>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Personal Information</h2>
+        </div>
+        
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="sport_discipline">Sport Discipline</label>
+                <input type="text" id="sport_discipline" name="sport_discipline" value="{{ athlete.sport_discipline }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="team_affiliation">Team Affiliation</label>
+                <input type="text" id="team_affiliation" name="team_affiliation" value="{{ athlete.team_affiliation|default:'' }}">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Certification Status</h2>
+        </div>
+        
+        {% if latest_certificate %}
+        <p><strong>Latest Certificate:</strong> {{ latest_certificate.get_certificate_type_display }}</p>
+        <p><strong>Type:</strong> {{ latest_certificate.certificate_type }}</p>
+        <p><strong>Issued:</strong> {{ latest_certificate.issue_date }}</p>
+        <p><strong>Expires:</strong> {{ latest_certificate.expiry_date }}</p>
+
+        
+        <div style="margin-top: 15px;">
+            {% if latest_certificate.is_expired %}
+            <span class="status-badge status-expired">Expired</span>
+            {% elif latest_certificate.is_expiring_soon %}
+            <span class="status-badge status-expiring">Expiring Soon</span>
+            {% else %}
+            <span class="status-badge status-valid">Valid</span>
+            {% endif %}
+        </div>
+        
+        <a href="{% url 'certificate_detail' latest_certificate.id %}" class="btn btn-secondary" style="margin-top: 15px; display: block;">View Certificate</a>
+        {% else %}
+        <p style="color: #999;">No certificates uploaded yet.</p>
+        <a href="{% url 'certificate_upload' %}" class="btn btn-primary" style="margin-top: 15px; display: block;">Upload Certificate</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 30px;">
+    <div class="card-header">
+        <h2 class="card-title">Recent Certificates</h2>
+    </div>
+    
+    {% if certificates %}
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Issued</th>
+                    <th>Expires</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cert in certificates|slice:":5" %}
+                <tr>
+                    <td>{{ cert.get_certificate_type_display }}</td>
+                    <td>{{ cert.issue_date }}</td>
+                    <td>{{ cert.expiry_date }}</td>
+                    <td>
+                        {% if cert.is_expired %}
+                        <span class="status-badge status-expired">Expired</span>
+                        {% elif cert.is_expiring_soon %}
+                        <span class="status-badge status-expiring">Expiring</span>
+                        {% else %}
+                        <span class="status-badge status-valid">Valid</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        <a href="{% url 'certificate_detail' cert.id %}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="text-align: center; color: #999;">No certificates yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!-- certificate_detail.html -->
+{% extends 'app/base.html' %}
+
+{% block title %}Certificate Detail - LUISS Rowing{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📄 Certificate Details</h1>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <div>
+        <img src="{{ certificate.certificate_image.url }}" alt="Certificate" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    </div>
+    
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">{{ certificate.get_certificate_type_display }}</h2>
+            </div>
+            
+            
+            <p><strong>📅 Issued:</strong> {{ certificate.issue_date }}</p>
+            <p><strong>⏰ Expires:</strong> {{ certificate.expiry_date }}</p>
+            <p><strong>⬆️ Uploaded:</strong> {{ certificate.uploaded_at }}</p>
+            <p><strong>📊 Status:</strong> {{ certificate.get_status }}</p>
+            
+            
+            <div style="margin-top: 30px; display: flex; gap: 10px; flex-direction: column;">
+                <a href="{% url 'certificate_list' %}" class="btn btn-secondary">← Back to Certificates</a>
+                
+                <form method="POST" style="width: 100%;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Are you sure you want to delete this certificate? This action cannot be undone.');">🗑️ Delete Certificate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

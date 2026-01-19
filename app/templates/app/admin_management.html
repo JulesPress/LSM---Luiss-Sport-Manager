@@ -1,0 +1,132 @@
+{% extends 'app/base.html' %}
+
+{% block title %}User Management - Staff Access{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">👥 User Management</h2>
+                <a href="{% url 'athlete_list' %}" class="btn btn-outline-secondary">
+                    ← Back to Athletes
+                </a>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Filters (matches your athlete_list) -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label fw-semibold">Search Users</label>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Username, name, email..." value="{{ search|default:'' }}">
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label fw-semibold">Staff Status</label>
+                            <select name="is_staff" class="form-select">
+                                <option value="">Show All</option>
+                                <option value="true" {% if is_staff_filter == 'true' %}selected{% endif %}>Staff Only</option>
+                                <option value="false" {% if is_staff_filter == 'false' %}selected{% endif %}>Non-Staff Only</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6 col-sm-12 pt-4 pt-md-0">
+                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                        </div>
+                        {% if search or is_staff_filter %}
+                        <div class="col-lg-2 col-md-6 col-sm-12 pt-4 pt-md-0">
+                            <a href="{% url 'admin_management' %}" class="btn btn-outline-secondary w-100">Clear All</a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Users table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light border-0">
+                    <h6 class="mb-0">
+                        <strong>Total: {{ users|length }} users</strong>
+                        {% if search or is_staff_filter %}
+                            <span class="text-muted ms-2">(filtered)</span>
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Full Name</th>
+                                <th>Staff</th>
+                                <th>Superuser</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <strong>{{ user.username }}</strong>
+                                    {% if user == request.user %}<span class="ms-1 text-muted">👤</span>{% endif %}
+                                </td>
+                                <td>{{ user.email|default:"—" }}</td>
+                                <td>{{ user.get_full_name|default:"—" }}</td>
+                                <td>
+                                    <span class="badge px-3 py-2 fs-6 {% if user.is_staff %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ user.is_staff|yesno:"Staff,User" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge px-3 py-2 fs-6 {% if user.is_superuser %}bg-danger{% else %}bg-light text-dark{% endif %}">
+                                        {{ user.is_superuser|yesno:"Superuser,No" }}
+                                    </span>
+                                </td>
+                                <td nowrap>
+                                    {% if user != request.user %}
+                                        <form method="post" class="d-inline" 
+                                              onsubmit="return confirm('{% if user.is_staff %}Revoke{% else %}Grant{% endif %} staff access for {{ user.username }}?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            <button type="submit" name="action" value="{% if user.is_staff %}revoke{% else %}grant{% endif %}" 
+                                                    class="btn btn-sm me-1 {% if user.is_staff %}btn-warning{% else %}btn-success{% endif %}">
+                                                {% if user.is_staff %}Revoke{% else %}Grant{% endif %}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge bg-info px-3 py-1">You</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <div class="my-3">
+                                        <i class="bi bi-people display-4 opacity-25"></i>
+                                    </div>
+                                    No users match your filters
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
