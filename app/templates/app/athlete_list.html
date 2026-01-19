@@ -1,0 +1,73 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Athletes - LUISS Rowing{% endblock %}
+
+{% block content %}
+<h1 class="page-title">👥 Athletes</h1>
+
+<div class="card" style="margin-bottom: 30px;">
+    <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <input type="text" name="search" placeholder="Search athletes..." value="{{ search }}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <select name="sport" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <option value="">All Sports</option>
+                {% for s in sports %}
+                <option value="{{ s }}" {% if sport == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-secondary">🔍 Search</button>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Sport</th>
+                <th>Team</th>
+                <th>Certification Status</th>  <!-- Updated header -->
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for athlete in athletes %}
+            <tr>
+                <td>{{ athlete.user.first_name }} {{ athlete.user.last_name }}</td>
+                <td>{{ athlete.user.username }}</td>
+                <td>{{ athlete.sport_discipline }}</td>
+                <td>{{ athlete.team_affiliation|default:"-" }}</td>
+                <td>
+                    {% with cert=athlete.get_latest_certificate %}
+                        {% if cert %}
+                            {% if cert.is_expired %}
+                                <span class="status-badge status-expired">
+                                    ❌ Expired ({{ cert.get_days_until_expiry }} days ago)
+                                </span>
+                            {% elif cert.is_expiring_soon %}
+                                <span class="status-badge status-expiring">
+                                    ⚠️ Expiring soon ({{ cert.get_days_until_expiry }} days left)
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-valid">
+                                    ✅ Valid ({{ cert.get_days_until_expiry }} days left)
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="status-badge status-expired">❌ No certificate</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td class="actions">
+                    
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

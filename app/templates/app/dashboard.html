@@ -1,0 +1,104 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Dashboard - LUISS Rowing{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📊 Dashboard</h1>
+
+<div class="grid">
+    {% if is_certified %}
+    <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value">✅ Certified</div>
+        <div class="stat-label">Valid until {{ latest_certificate.expiry_date }}</div>
+    </div>
+    {% else %}
+    <div class="stat-card" style="background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);">
+        <div class="stat-label">Status</div>
+        <div class="stat-value">❌ Not Certified</div>
+        <div class="stat-label">Upload a certificate</div>
+    </div>
+    {% endif %}
+    
+    <div class="stat-card">
+        <div class="stat-label">Total Certificates</div>
+        <div class="stat-value">{{ total_certificates }}</div>
+        <div class="stat-label">in your account</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, var(--warning) 0%, #e67e22 100%);">
+        <div class="stat-label">Expiring Soon</div>
+        <div class="stat-value">{{ expiring_soon|length }}</div>
+        <div class="stat-label">within 30 days</div>
+    </div>
+</div>
+
+{% if expiring_soon %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">⚠️ Certificates Expiring Soon</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+            
+                    <th>Issued</th>
+                    <th>Expires</th>
+                    <th>Days Left</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cert in expiring_soon %}
+                <tr>
+                    <td>{{ cert.issue_date }}</td>
+                    <td>{{ cert.expiry_date }}</td>
+                    <td><span class="status-badge status-expiring">{{ cert.get_days_until_expiry }} days left</span></td>
+                    <td class="actions">
+                        <a href="{% url 'certificate_detail' cert.id %}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if expired %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">❌ Expired Certificates</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+            
+                    <th>Issued</th>
+                    <th>Expired</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cert in expired %}
+                <tr>
+                    
+                    <td>{{ cert.issue_date }}</td>
+                    <td>{{ cert.expiry_date }}</td>
+                    <td class="actions">
+                        <a href="{% url 'certificate_detail' cert.id %}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 40px;">
+    <a href="{% url 'certificate_upload' %}" class="btn btn-primary">📤 Upload New Certificate</a>
+</div>
+{% endblock %}
